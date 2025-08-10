@@ -36,7 +36,7 @@ MESSAGES = {
             "😈 Подивись, що з'явилося сьогодні:\n"
             "📸 Нові фото та приват від моделей\n"
             "🎥 Гарячі відео 18+\n"
-            "🔓 Усё це в *KinkyHub*\n\n"
+            "🔓 Усе це в *KinkyHub*\n\n"
             "👉 Заходь зараз: {main}"
         ),
         "day4": (
@@ -83,7 +83,7 @@ INITIAL_BUTTON = InlineKeyboardMarkup([
 ])
 
 def get_keyboard(lang="ua"):
-    # Основные кнопки (логика локализации можно расширить при желании)
+    # Основные кнопки
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🔥 KinkyHub", callback_data="main_chat")],
         [InlineKeyboardButton("💌 Вірт / Escort", callback_data="escort")],
@@ -107,7 +107,8 @@ async def send_delayed_messages(bot, user_id, name, lang):
     # День 4 — через ещё 2 дня (итого 4 дня)
     await asyncio.sleep(2 * 86400)
     try:
-        with open(MEDIA_FILES["day4"], "rb") as photo:         await bot.send_photo(
+        with open(MEDIA_FILES["day4"], "rb") as photo:
+            await bot.send_photo(
                 chat_id=user_id,
                 photo=photo,
                 caption=MESSAGES[lang]["day4"].format(name=name, main=CHAT_LINKS["main_chat"]),
