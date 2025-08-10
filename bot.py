@@ -79,7 +79,7 @@ MESSAGES = {
 # ===== НОВЫЕ ЭЛЕМЕНТЫ =====
 # Единичная кнопка, которая запустит стартовый поток
 INITIAL_BUTTON = InlineKeyboardMarkup([
-    [InlineKeyboardButton("ДА ХОЧУ ПОСМОТРЕТЬ", callback_data="show_welcome")]
+    [InlineKeyboardButton("ДА МНЕ ЕСТЬ 18!!!", callback_data="show_welcome")]
 ])
 
 def get_keyboard(lang="ua"):
@@ -142,7 +142,7 @@ async def join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Отправляем только одну кнопку, чтобы пользователь запустил старт
     lang_code = "ua" if (user.language_code and user.language_code.startswith("uk")) else "en"
     try:
-        lang_text = "Готовы посмотреть контент? Нажмите кнопку ниже" if lang_code == "ua" else "Ready to view? Press the button below"
+        lang_text = "ВАМ ЕСТЬ 18? Нажмите кнопку ниже" if lang_code == "ua" else "Ready to view? Press the button below"
         await context.bot.send_message(
             chat_id=user.id,
             text=lang_text,
@@ -159,7 +159,7 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = query.from_user
     button_id = query.data
 
-    # Новая ветка: первая кнопка "ДА ХОЧУ ПОСМОТРЕТЬ"
+    # Новая ветка: первая кнопка "ДА МНЕ ЕСТЬ 18"
     if button_id == "show_welcome":
         await show_welcome(update, context)
         await query.answer()
