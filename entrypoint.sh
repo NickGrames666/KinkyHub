@@ -3,11 +3,11 @@ set -e
 
 PORT=${PORT:-8080}
 
-Запускаем бота в фоне
+Запуск бота в фоне
 python bot.py &
 BOT_PID=$!
 
-Простенький Health-Check HTTP-сервер на порту 8080
+Простой health-check HTTP-сервер на порту 8080
 python -m http.server "$PORT" --bind 0.0.0.0 &
 HTTP_PID=$!
 
