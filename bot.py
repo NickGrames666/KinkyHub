@@ -4,7 +4,7 @@ import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, ChatJoinRequestHandler, CallbackQueryHandler, ContextTypes
 
-# Берём токен из переменной окружения BOT_TOKEN
+# Токен берём из переменной окружения BOT_TOKEN
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 # ===== НАСТРОЙКИ =====
@@ -25,7 +25,7 @@ MESSAGES = {
     "ua": {
         "welcome": (
             "🔥 Привіт, {name}!\n"
-            "Ти подав заявку до **KinkyHub** — місця, де 🔞 моделі продають нюдси та роблять приват відеодзвінки.\n\n"
+            "Ти подав заявку до *KinkyHub* — місця, де 🔞 моделі продають нюдси та роблять приват відеодзвінки.\n\n"
             "💎 Що на тебе чекає:\n"
             "💋 Ексклюзивні фото та відео без цензури\n"
             "🖤 Приват-стріми прямо в Telegram\n"
@@ -36,11 +36,11 @@ MESSAGES = {
             "😈 Подивись, що з'явилося сьогодні:\n"
             "📸 Нові фото та приват від моделей\n"
             "🎥 Гарячі відео 18+\n"
-            "🔓 Усе це в **KinkyHub**\n\n"
+            "🔓 Усё це в *KinkyHub*\n\n"
             "👉 Заходь зараз: {main}"
         ),
         "day4": (
-            "⏳ {name}, твій пропуск у **KinkyHub** скоро закриється!\n\n"
+            "⏳ {name}, твій пропуск у *KinkyHub* скоро закриється!\n\n"
             "Не пропусти:\n"
             "💋 доступ до приватів\n"
             "📸 ексклюзивні фото\n"
@@ -51,7 +51,7 @@ MESSAGES = {
     "en": {
         "welcome": (
             "🔥 Hi, {name}!\n"
-            "You applied to **KinkyHub** — the place where 🔞 models sell nudes and do private video calls.\n\n"
+            "You applied to *KinkyHub* — the place where 🔞 models sell nudes and do private video calls.\n\n"
             "💎 What awaits you:\n"
             "💋 Exclusive uncensored photos & videos\n"
             "🖤 Private streams right in Telegram\n"
@@ -62,11 +62,11 @@ MESSAGES = {
             "😈 Look what’s new today:\n"
             "📸 New photos & private shows from models\n"
             "🎥 Hot 18+ videos\n"
-            "🔓 All this is in **KinkyHub**\n\n"
+            "🔓 All this is in *KinkyHub*\n\n"
             "👉 Join now: {main}"
         ),
         "day4": (
-            "⏳ {name}, your pass to **KinkyHub** is closing soon!\n\n"
+            "⏳ {name}, your pass to *KinkyHub* is closing soon!\n\n"
             "Don't miss:\n"
             "💋 access to privates\n"
             "📸 exclusive photos\n"
@@ -76,9 +76,14 @@ MESSAGES = {
     }
 }
 
-# ===== ФУНКЦИИ =====
+# ===== НОВЫЕ ЭЛЕМЕНТЫ =====
+# Единичная кнопка, которая запустит стартовый поток
+INITIAL_BUTTON = InlineKeyboardMarkup([
+    [InlineKeyboardButton("ДА ХОЧУ ПОСМОТРЕТЬ", callback_data="show_welcome")]
+])
 
 def get_keyboard(lang="ua"):
+    # Основные кнопки (логика локализации можно расширить при желании)
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🔥 KinkyHub", callback_data="main_chat")],
         [InlineKeyboardButton("💌 Вірт / Escort", callback_data="escort")],
@@ -89,56 +94,87 @@ async def send_delayed_messages(bot, user_id, name, lang):
     # День 2 — через 2 дня
     await asyncio.sleep(2 * 86400)
     try:
-        await bot.send_photo(
-            chat_id=user_id,
-            photo=open(MEDIA_FILES["day2"], "rb"),
-            caption=MESSAGES[lang]["day2"].format(main=CHAT_LINKS["main_chat"]),
-            parse_mode="Markdown"
-        )
-    except:
+        with open(MEDIA_FILES["day2"], "rb") as photo:
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=photo,
+                caption=MESSAGES[lang]["day2"].format(main=CHAT_LINKS["main_chat"]),
+                parse_mode="Markdown"
+            )
+    except Exception:
         pass
 
-    # День 4 — через 2 дня (итого 4 дня)
+    # День 4 — через ещё 2 дня (итого 4 дня)
     await asyncio.sleep(2 * 86400)
     try:
-        await bot.send_photo(
-            chat_id=user_id,
-            photo=open(MEDIA_FILES["day4"], "rb"),
-            caption=MESSAGES[lang]["day4"].format(name=name, main=CHAT_LINKS["main_chat"]),
-            parse_mode="Markdown"
-        )
-    except:
+        with open(MEDIA_FILES["day4"], "rb") as photo:         await bot.send_photo(
+                chat_id=user_id,
+                photo=photo,
+                caption=MESSAGES[lang]["day4"].format(name=name, main=CHAT_LINKS["main_chat"]),
+                parse_mode="Markdown"
+            )
+    except Exception:
         pass
 
-async def join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.chat_join_request.from_user
-    lang_code = "ua" if (user.language_code and user.language_code.startswith("uk")) else "en"
+# Новый обработчик, который запускает приветствие
+async def show_welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    lang = "ua" if (user.language_code and user.language_code.startswith("uk")) else "en"
 
     try:
-        await context.bot.send_photo(
+        with open(MEDIA_FILES["day0"], "rb") as photo:
+            await context.bot.send_photo(
+                chat_id=user.id,
+                photo=photo,
+                caption=MESSAGES[lang]["welcome"].format(name=user.first_name),
+                parse_mode="Markdown",
+                reply_markup=get_keyboard(lang)
+            )
+        asyncio.create_task(send_delayed_messages(context.bot, user.id, user.first_name, lang))
+    except Exception as e:
+        print(f"⚠️ Не удалось отправить приветствие: {e}")
+
+# Обновлённый обработчик заявок
+async def join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.chat_join_request.from_user
+
+    # Отправляем только одну кнопку, чтобы пользователь запустил старт
+    lang_code = "ua" if (user.language_code and user.language_code.startswith("uk")) else "en"
+    try:
+        lang_text = "Готовы посмотреть контент? Нажмите кнопку ниже" if lang_code == "ua" else "Ready to view? Press the button below"
+        await context.bot.send_message(
             chat_id=user.id,
-            photo=open(MEDIA_FILES["day0"], "rb"),
-            caption=MESSAGES[lang_code]["welcome"].format(name=user.first_name),
-            parse_mode="Markdown",
-            reply_markup=get_keyboard(lang_code)
+            text=lang_text,
+            reply_markup=INITIAL_BUTTON
         )
-        asyncio.create_task(send_delayed_messages(context.bot, user.id, user.first_name, lang_code))
-    except:
-        print(f"⚠️ Не удалось отправить {user.first_name}")
+    except Exception as e:
+        print(f"⚠️ Не удалось отправить запрос на просмотр: {e}")
 
     await update.chat_join_request.approve()
 
+# Обработчик нажатий кнопок
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user = query.from_user
     button_id = query.data
+
+    # Новая ветка: первая кнопка "ДА ХОЧУ ПОСМОТРЕТЬ"
+    if button_id == "show_welcome":
+        await show_welcome(update, context)
+        await query.answer()
+        return
 
     # Логируем клики
     with open("stats.txt", "a", encoding="utf-8") as f:
         f.write(f"{datetime.datetime.now()} | {user.id} | {user.first_name} | {button_id}\n")
 
     await query.answer()
-    await context.bot.send_message(chat_id=user.id, text=f"🔗 {CHAT_LINKS[button_id]}")
+    # Отправляем реальную ссылку
+    if button_id in CHAT_LINKS:
+        try:
+            await context.bot.send_message(chat_id=user.id, text=f"🔗 {CHAT_LINKS[button_id]}")
+        except Exception as e:
+            print(f"⚠️ Не удалось отправить ссылку: {e}")
 
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -147,5 +183,5 @@ def main():
     print("✅ BOT STARTED")
     app.run_polling()
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     main()
