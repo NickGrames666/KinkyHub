@@ -184,5 +184,6 @@ def main():
     print("✅ BOT STARTED")
     app.run_polling()
 
-if _name_ == "_main_":
+if name == "main":
     main()
+    
